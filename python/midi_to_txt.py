@@ -55,6 +55,8 @@ def ticks_to_microseconds(tick, conversion_factor):
 music_name = 'mario_theme'
 path = base_path + music_dict[music_name]['path']
 filename = music_dict[music_name]['filename']
+print "\nConverting from midi for {}".format(music_name)
+print "Midi file: {}\n\n".format(filename)
 
 # Read in midi_file
 pattern = midi.read_midifile(path + filename)
@@ -125,65 +127,68 @@ for track in pattern:
 
 print len(voice_list)
 
-out_dir = "../out/" + music_name + "/"
+pitch_dict = {}
+start_time_dict = {}
+duration_dict = {}
 
-if not os.path.isdir(out_dir+'config.txt'):
-    os.mkdir(out_dir)
-
-config_file = open(out_dir+'config.txt', 'w')
-# myfile.write("#include <pitches.h>\n")
-
-for j in [0,1,2]:
-    print "down here"
-
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    pitch_file = open(out_dir+'pitch{}.txt'.format(j), 'w')
-    start_time_file = open(out_dir+'start_time{}.txt'.format(j), 'w')
-    duration_file = open(out_dir+'duration{}.txt'.format(j), 'w')
-    volume_file = open(out_dir+'volume{}.txt'.format(j), 'w')
+for j in [0, 1, 2]:
 
     working = voice_list[j]
-    # print working
-    # print voice_list
 
-    start_time = []
-    duration = []
-    volume = []
-    note = []
+    pitch_working = []
+    start_time_working = []
+    duration_working = []
 
     for i in range(len(working)):
-        print "\n\n", i
-        print working[i]
-        start_time.append(working[i][0][0])
-        duration.append(working[i][0][1] - working[i][0][0])
-        volume.append(working[i][0][1])
-        note.append(working[i][1])
+        # print working[i]
+        pitch_working.append(working[i][1])
+        start_time_working.append(working[i][0][0])
+        duration_working.append(working[i][0][1] - working[i][0][0])
+        # volume.append(working[i][0][1])
 
-    config_file.write("{}\n".format(len(working)))
+    pitch_dict[j] = pitch_working
+    start_time_dict[j] = start_time_working
+    duration_dict[j] = duration_working
 
-    for i in range(len(working)):
-        pitch_file.write("{}\n".format(freq_dict[note[i]]))
+teensy_out_dir = "../out/" + music_name + "_teensy/"
 
-    # start_time_file.write("{}\n".format(len(working)))
+if not os.path.isdir(teensy_out_dir):
+    os.mkdir(teensy_out_dir)
 
-    for i in range(len(working)):
-        start_time_file.write("{}\n".format(start_time[i]))
+teensy_file = open(teensy_out_dir+ music_name + "_teensy.ino", 'w')
+teensy_file.write("#include <pitches.h>\n\n")
 
-    # duration_file.write("{}\n".format(len(working)))
+for voice_num in range(len(pitch_dict.keys())):
+    pitch_list = pitch_dict[voice_num]
+    start_time_list = start_time_dict[voice_num]
+    duration_list = duration_dict[voice_num]
 
-    for i in range(len(working)):
-        duration_file.write("{}\n".format(duration[i]))
+    teensy_file.write("int melody{}[] = {{\n".format(voice_num))
+    for i in range(len(pitch_list)):
+        teensy_file.write("{}\n".format(pitch_list[i]))
+    teensy_file.write("}};\n\n".format())
 
-    # volume_file.write("{}\n".format(len(working)))
+    teensy_file.write("int start_time{}[] = {{\n".format(voice_num))
+    for i in range(len(start_time_list)):
+        teensy_file.write("{}\n".format(start_time_list[i]))
+    teensy_file.write("}};\n\n".format())
 
-    for i in range(len(working)):
-        volume_file.write("{}\n".format(volume[i]))
+    teensy_file.write("int duration{}[] = {{\n".format(voice_num))
+    for i in range(len(duration_list)):
+        teensy_file.write("{}\n".format(duration_list[i]))
+    teensy_file.write("}};\n\n".format())
 
-    pitch_file.close()
-    start_time_file.close()
-    duration_file.close()
-    volume_file.close()
+practice_filename = "C:/Users/bkeegan/Desktop/tester_dev/repos/chiptune_teensy/teensy_code/bottom_matter/bottom_matter.ino"
+practice_file = open(practice_filename, 'r')
+x = practice_file.read()
+print x
+teensy_file.write(x)
 
-config_file.close()
+teensy_file.close()
+
+
+
+
+
+
 
