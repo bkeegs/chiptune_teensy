@@ -17,11 +17,11 @@ for j in range(9):
         counter += 1
 
 
-base_path = "../music/"
+base_path = "../music_files/"
 music_dict = {'mario_theme':{'path':"/mario/",
                              'filename':"smb1-Theme.mid"},
               'zelda_ovw':{'path':"/zelda/",
-                           'filename':"z4-ovw.mid"},
+                           'filename':"z4-ovw_edited.mid"},
               'tetris':{'path':"/tetris/",
                         'filename':"music-a-3-.mid"},
               'pkmn_opening':{'path':"/pkmn/",
@@ -45,6 +45,7 @@ music_dict = {'mario_theme':{'path':"/mario/",
 # Making a dictionary to track which files in our library use this convention
 note_off_dict = {}
 note_off_dict[0] = "mario_theme"
+note_off_dict[1] = "zelda_ovw"
 
 def ticks_to_microseconds(tick, conversion_factor):
     return tick*conversion_factor
@@ -52,7 +53,7 @@ def ticks_to_microseconds(tick, conversion_factor):
 #######################################################
 
 # Pick which file in the library to use
-music_name = 'mario_theme'
+music_name = 'tetris'
 path = base_path + music_dict[music_name]['path']
 filename = music_dict[music_name]['filename']
 print "\nConverting from midi for {}".format(music_name)
@@ -86,6 +87,7 @@ voice_list = []
 end_note_found = 0
 
 for track in pattern:
+    print track
     current_voice = []
     current_time = 0
     for k in range(len(track)):
@@ -101,9 +103,10 @@ for track in pattern:
             # print "not a note"
             pass
 
-    print current_voice
-
     if current_voice != []:
+
+        print current_voice
+
 
         if not use_note_off_flag:
             for i in range(len(current_voice)):
@@ -140,6 +143,7 @@ for j in [0, 1, 2]:
     duration_working = []
 
     for i in range(len(working)):
+        print working[i]
         # print working[i]
         pitch_working.append(working[i][1])
         start_time_working.append(working[i][0][0])
@@ -150,7 +154,7 @@ for j in [0, 1, 2]:
     start_time_dict[j] = start_time_working
     duration_dict[j] = duration_working
 
-teensy_out_dir = "../out/" + music_name + "_teensy/"
+teensy_out_dir = "../generated_teensy_code/" + music_name + "_teensy/"
 
 if not os.path.isdir(teensy_out_dir):
     os.mkdir(teensy_out_dir)
@@ -165,17 +169,17 @@ for voice_num in range(len(pitch_dict.keys())):
 
     teensy_file.write("int melody{}[] = {{\n".format(voice_num))
     for i in range(len(pitch_list)):
-        teensy_file.write("{}\n".format(pitch_list[i]))
+        teensy_file.write("{},\n".format(pitch_list[i]))
     teensy_file.write("}};\n\n".format())
 
     teensy_file.write("int start_time{}[] = {{\n".format(voice_num))
     for i in range(len(start_time_list)):
-        teensy_file.write("{}\n".format(start_time_list[i]))
+        teensy_file.write("{},\n".format(start_time_list[i]))
     teensy_file.write("}};\n\n".format())
 
     teensy_file.write("int duration{}[] = {{\n".format(voice_num))
     for i in range(len(duration_list)):
-        teensy_file.write("{}\n".format(duration_list[i]))
+        teensy_file.write("{},\n".format(duration_list[i]))
     teensy_file.write("}};\n\n".format())
 
 practice_filename = "C:/Users/bkeegan/Desktop/tester_dev/repos/chiptune_teensy/teensy_code/bottom_matter/bottom_matter.ino"
